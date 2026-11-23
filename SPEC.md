@@ -76,7 +76,17 @@ iOS 17以降のiPhone向け個人用カレンダー。Phase 1は縦画面に対�
 
 - 表示上はグレゴリオ暦、日本語、端末のタイムゾーンを使う。日・週・月の区切りは `Calendar` から求める。予定の区間は開始を含み終了を含まないため、ちょうど午前0時に終わる予定は翌日に表示しない。日付選択は時刻を切り捨てる。月送りで該当日がなければ移動先月の末日に合わせる。
 - Phase 1の予定と祝日はメモリ上の検証データ。予定の編集・永続化・権限要求は行わない。
-- Phase 2から予定はEventKitを正本とする。iOS 17のフルアクセスを利用目的の説明付きで求め、未許可・制限・書き込み専用の場合は権限状態と操作可能な範囲を表示する。`EKEventStoreChanged` とアプリの復帰で必要な表示範囲を再取得する。iCloudとGoogleの同期はiOSに登録したアカウントを通じて行う。 [AppleのEventKitガイド](https://developer.apple.com/documentation/eventkit/accessing-calendar-using-eventkit-and-eventkitui) · [iOS向けFAQ](https://www.fsi.co.jp/solution/refills/faq_ios.html)
+- OS連携の予定はEventKitを正本とする。iOS 17のフルアクセスを利用目的の説明付きで求め、未許可・制限・書き込み専用の場合は権限状態と操作可能な範囲を表示する。`EKEventStoreChanged` とアプリの復帰で必要な表示範囲を再取得する。iCloudとOS経由のGoogleカレンダーはiOSに登録したアカウントを通じて取得する。 [AppleのEventKitガイド](https://developer.apple.com/documentation/eventkit/accessing-calendar-using-eventkit-and-eventkitui) · [iOS向けFAQ](https://www.fsi.co.jp/solution/refills/faq_ios.html)
 - Phase 3の予定保存では、保存時に権限と `allowsContentModifications` を再確認する。繰り返しの変更・削除は「この予定のみ」「これ以降の予定」から選択する。予定の通知はEventKitのアラームに委ねる。アプリ側から同じ予定の通知を重ねて登録しない。
 - Phase 4のローカルタスクとPhase 5の予定テンプレートをSwiftDataに保存する。iOSリマインダーはEventKitから取得・更新する。設定はAppStorageに保存する。ローカルタスクの通知を導入する場合はタスクIDにひもづけ、再設定や完了で以前の通知を取り消す。
 - Phase 5の祝日データは公的資料の対象年と更新方法を明記して同梱する。六曜は対応期間と旧暦の採用基準を定義し、境界日を照合してから公開する。写真は許可された写真のみ、撮影日時で表示する。ウィジェットと共有するデータは必要最小限とし、予定を表示する場合は権限に応じてEventKitから取得する。
+
+## Google Calendar APIによる直接連携
+
+「その他」内の設定に「Googleカレンダー連携」を置く。ログイン後に表示するカレンダーは設定で選び、既定では閲覧可能なメインカレンダーを取得する。カレンダーの背景色は画面上で読みやすい色に調整し、設定画面にGoogle側の閲覧・編集権限を表示する。予定詳細は閲覧用。データの正本はGoogle Calendar APIで、SwiftDataに保存するのはアカウント別のカレンダー選択設定。
+
+| 項目 | 現在 |
+| --- | --- |
+| Google連携 Phase 1 | ログイン、読み取り同意、復元、アカウント表示、連携解除、再認証のソース実装済み。実際の認証とKeychain復元は未確認 |
+| Google連携 Phase 2 | 一覧、表示期間の予定取得、起動・復帰・手動更新、繰り返し各回、終日・複数日、選択設定、エラー表示のソース実装済み。Google実データとiPhone上の動作は未確認 |
+| Google連携 Phase 3〜7 | Googleへの書き込みと保存先、EventKit側の実装と重複防止、増分同期、永続キャッシュ・オフラインキュー・競合解決、定期更新、自動同期設定、実機検証は未実装または未実施 |
